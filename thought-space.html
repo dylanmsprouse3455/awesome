@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Calm Thought Space</title>
+  <style>
+    :root {
+      --bg1: #eef1ff;
+      --bg2: #e7f2ff;
+      --ink: #1f2340;
+      --sub: #59608a;
+      --line: rgba(117, 128, 200, 0.45);
+      --glass: rgba(255, 255, 255, 0.7);
+      --glass-strong: rgba(255, 255, 255, 0.88);
+      --focus: #6f7dff;
+      --selected: #5f70ff;
+      --shadow: 0 8px 24px rgba(64, 79, 168, 0.12);
+      --radius: 16px;
+      --safe-bottom: max(14px, env(safe-area-inset-bottom));
+      --safe-top: max(12px, env(safe-area-inset-top));
+      --composer-h: 78px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      color: var(--ink);
+      font-family: ui-rounded, "SF Pro Rounded", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      background: radial-gradient(1300px 700px at 0% -20%, #f7f9ff 0%, var(--bg1) 42%, var(--bg2) 100%);
+    }
+
+    body { -webkit-font-smoothing: antialiased; }
+
+    .app {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      padding: calc(var(--safe-top) + 6px) 12px calc(var(--composer-h) + var(--safe-bottom) + 20px);
+      gap: 10px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      padding: 6px 2px;
+    }
+
+    .menu-wrap {
+      position: relative;
+    }
+
+    .menu-btn {
+      border: 0;
+      background: var(--glass);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 12px;
+      width: 40px;
+      height: 40px;
+      box-shadow: var(--shadow);
+      color: var(--ink);
+      font-size: 1.2rem;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+    }
+
+    .menu {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 6px);
+      width: 182px;
+      background: var(--glass-strong);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 14px;
+      box-shadow: 0 10px 28px rgba(56, 67, 138, 0.2);
+      padding: 6px;
+      display: none;
+      z-index: 5;
+    }
+
+    .menu.open { display: block; }
+
+    .menu button {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: var(--ink);
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 0.92rem;
+    }
+
+    .menu button:active,
+    .menu button:hover { background: rgba(101, 118, 255, 0.12); }
+
+    .topic {
+      margin: 0;
+      width: 100%;
+      border: 1px solid rgba(141, 155, 227, 0.28);
+      background: rgba(255, 255, 255, 0.55);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      color: var(--ink);
+      outline: none;
+    }
+
+    .topic:focus,
+    .composer textarea:focus {
+      border-color: var(--focus);
+      box-shadow: 0 0 0 3px rgba(111, 125, 255, 0.16);
+    }
+
+    .status {
+      font-size: 0.8rem;
+      color: var(--sub);
+      min-height: 18px;
+      padding: 0 2px;
+    }
+
+    .view {
+      flex: 1;
+      overflow: auto;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      scroll-padding-bottom: 100px;
+    }
+
+    .tree { list-style: none; margin: 0; padding: 8px 0 8px 4px; }
+    .tree ul { list-style: none; margin: 0; padding: 4px 0 0 18px; }
+
+    .node {
+      position: relative;
+      margin: 0;
+      padding: 0 0 8px 14px;
+    }
+
+    .node::before {
+      content: "";
+      position: absolute;
+      left: 1px;
+      top: -2px;
+      width: 12px;
+      height: 28px;
+      border-left: 2px solid var(--line);
+      border-bottom: 2px solid var(--line);
+      border-bottom-left-radius: 8px;
+      pointer-events: none;
+    }
+
+    .tree > .node::before { display: none; }
+
+    .node::after {
+      content: "";
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(129, 152, 255, 0.85);
+      left: -1.5px;
+      top: -2px;
+      filter: drop-shadow(0 0 6px rgba(112, 133, 255, 0.65));
+      animation: flow 2.3s linear infinite;
+      animation-delay: calc(var(--depth, 0) * 0.1s);
+      pointer-events: none;
+    }
+
+    .tree > .node::after { display: none; }
+
+    @keyframes flow {
+      0% { transform: translateY(0); opacity: 0.25; }
+      38% { opacity: 1; }
+      50% { transform: translateY(22px); }
+      100% { transform: translateY(22px); opacity: 0.2; }
+    }
+
+    .bubble {
+      border: 1px solid rgba(131, 145, 220, 0.24);
+      background: var(--glass-strong);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 13px;
+      padding: 8px 10px;
+      font-size: 0.92rem;
+      line-height: 1.35;
+      white-space: pre-wrap;
+      width: fit-content;
+      max-width: min(90vw, 560px);
+      box-shadow: 0 4px 14px rgba(79, 96, 181, 0.1);
+      cursor: pointer;
+      transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+      user-select: none;
+    }
+
+    .bubble:active { transform: scale(0.99); }
+
+    .bubble.selected {
+      border-color: var(--selected);
+      box-shadow: 0 0 0 3px rgba(95, 112, 255, 0.2), 0 8px 24px rgba(77, 95, 191, 0.22);
+      background: linear-gradient(180deg, #ffffff 0%, #f5f7ff 100%);
+    }
+
+    .copy-view {
+      display: none;
+      border: 1px solid rgba(131, 145, 220, 0.26);
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 12px;
+      padding: 10px;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.8rem;
+      color: #2f355c;
+      line-height: 1.45;
+      margin-bottom: 8px;
+    }
+
+    .copy-view.show { display: block; }
+
+    .composer-shell {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 10px 10px calc(var(--safe-bottom) + 10px);
+      background: linear-gradient(180deg, rgba(235, 240, 255, 0.14), rgba(235, 240, 255, 0.9) 48%);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 10;
+    }
+
+    .composer {
+      margin: 0 auto;
+      max-width: 740px;
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      background: var(--glass-strong);
+      border: 1px solid rgba(127, 143, 227, 0.3);
+      box-shadow: 0 8px 24px rgba(85, 95, 164, 0.16);
+      border-radius: 16px;
+      padding: 8px;
+    }
+
+    .composer textarea {
+      flex: 1;
+      border: 1px solid rgba(130, 141, 215, 0.25);
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 12px;
+      min-height: 42px;
+      max-height: 128px;
+      resize: none;
+      padding: 10px 11px;
+      font-size: 1rem;
+      line-height: 1.35;
+      color: var(--ink);
+      outline: none;
+    }
+
+    .send {
+      height: 42px;
+      border: 0;
+      border-radius: 11px;
+      padding: 0 15px;
+      font-weight: 600;
+      color: white;
+      background: linear-gradient(180deg, #7484ff 0%, #6274f3 100%);
+      box-shadow: 0 4px 14px rgba(79, 96, 201, 0.35);
+      white-space: nowrap;
+    }
+
+    .send:active { transform: translateY(1px); }
+
+    @media (min-width: 768px) {
+      .app { padding-left: 18px; padding-right: 18px; }
+      .view { padding: 14px; }
+      .bubble { font-size: 0.95rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="title">Thought Space</div>
+      <div class="menu-wrap">
+        <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
+        <div class="menu" id="menu">
+          <button data-action="copy">Copy Session</button>
+          <button data-action="new">New Session</button>
+          <button data-action="clear-target">Clear Target</button>
+          <button data-action="toggle-copy">Toggle Copy View</button>
+        </div>
+      </div>
+    </header>
+
+    <input id="topic" class="topic" type="text" placeholder="Session topic (optional)" maxlength="120" />
+    <div id="status" class="status">Root mode: next thought starts a new branch.</div>
+
+    <section class="view" id="view">
+      <pre id="copyView" class="copy-view"></pre>
+      <ul id="tree" class="tree"></ul>
+    </section>
+  </main>
+
+  <div class="composer-shell">
+    <form class="composer" id="composer" autocomplete="off">
+      <textarea id="input" placeholder="Write a thought..." rows="1"></textarea>
+      <button class="send" type="submit">Send</button>
+    </form>
+  </div>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = 'calmThoughtSpace.v1';
+      const state = loadState();
+
+      const treeEl = document.getElementById('tree');
+      const topicEl = document.getElementById('topic');
+      const statusEl = document.getElementById('status');
+      const inputEl = document.getElementById('input');
+      const composerEl = document.getElementById('composer');
+      const menuBtn = document.getElementById('menuBtn');
+      const menuEl = document.getElementById('menu');
+      const copyViewEl = document.getElementById('copyView');
+      const viewEl = document.getElementById('view');
+
+      topicEl.value = state.topic || '';
+      render();
+      focusInput();
+
+      composerEl.addEventListener('submit', (e) => {
+        e.preventDefault();
+        sendThought();
+      });
+
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendThought();
+        }
+      });
+
+      inputEl.addEventListener('input', autoGrow);
+      topicEl.addEventListener('input', () => {
+        state.topic = topicEl.value.trimStart();
+        state.updatedAt = Date.now();
+        persist();
+        syncCopyView();
+      });
+
+      treeEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('.bubble');
+        if (!btn) return;
+        const id = btn.dataset.id;
+        state.selectedId = state.selectedId === id ? null : id;
+        state.updatedAt = Date.now();
+        persist();
+        render();
+        focusInput();
+      });
+
+      menuBtn.addEventListener('click', () => {
+        menuEl.classList.toggle('open');
+      });
+
+      menuEl.addEventListener('click', async (e) => {
+        const btn = e.target.closest('button[data-action]');
+        if (!btn) return;
+        const action = btn.dataset.action;
+        menuEl.classList.remove('open');
+
+        if (action === 'copy') {
+          const text = makeExportText();
+          try {
+            await navigator.clipboard.writeText(text);
+            statusEl.textContent = 'Session copied.';
+          } catch {
+            fallbackCopy(text);
+            statusEl.textContent = 'Session copied (fallback).';
+          }
+        }
+
+        if (action === 'new') {
+          state.topic = '';
+          state.roots = [];
+          state.selectedId = null;
+          state.updatedAt = Date.now();
+          topicEl.value = '';
+          persist();
+          render();
+          focusInput();
+        }
+
+        if (action === 'clear-target') {
+          state.selectedId = null;
+          state.updatedAt = Date.now();
+          persist();
+          render();
+          focusInput();
+        }
+
+        if (action === 'toggle-copy') {
+          state.copyView = !state.copyView;
+          persist();
+          syncCopyView();
+        }
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.menu-wrap')) menuEl.classList.remove('open');
+      });
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return freshState();
+          const parsed = JSON.parse(raw);
+          return {
+            topic: typeof parsed.topic === 'string' ? parsed.topic : '',
+            roots: Array.isArray(parsed.roots) ? parsed.roots : [],
+            selectedId: typeof parsed.selectedId === 'string' ? parsed.selectedId : null,
+            copyView: Boolean(parsed.copyView),
+            updatedAt: typeof parsed.updatedAt === 'number' ? parsed.updatedAt : Date.now()
+          };
+        } catch {
+          return freshState();
+        }
+      }
+
+      function freshState() {
+        return { topic: '', roots: [], selectedId: null, copyView: false, updatedAt: Date.now() };
+      }
+
+      function persist() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }
+
+      function makeId() {
+        return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+      }
+
+      function sendThought() {
+        const text = inputEl.value.trim();
+        if (!text) return;
+
+        const node = { id: makeId(), text, children: [] };
+
+        if (!state.selectedId) {
+          state.roots.push(node);
+        } else {
+          const parent = findNode(state.roots, state.selectedId);
+          if (parent) {
+            parent.children.push(node);
+          } else {
+            state.roots.push(node);
+            state.selectedId = null;
+          }
+        }
+
+        state.updatedAt = Date.now();
+        inputEl.value = '';
+        autoGrow();
+        persist();
+        render();
+        focusInput();
+        requestAnimationFrame(() => viewEl.scrollTo({ top: viewEl.scrollHeight, behavior: 'smooth' }));
+      }
+
+      function findNode(nodes, id) {
+        for (const node of nodes) {
+          if (node.id === id) return node;
+          const inChild = findNode(node.children || [], id);
+          if (inChild) return inChild;
+        }
+        return null;
+      }
+
+      function render() {
+        const selectedExists = !!(state.selectedId && findNode(state.roots, state.selectedId));
+        if (state.selectedId && !selectedExists) state.selectedId = null;
+
+        treeEl.innerHTML = '';
+        if (state.roots.length === 0) {
+          const empty = document.createElement('div');
+          empty.style.padding = '10px 6px';
+          empty.style.color = '#616792';
+          empty.style.fontSize = '0.92rem';
+          empty.textContent = 'Start with a thought below. Select a bubble to branch from it.';
+          treeEl.appendChild(empty);
+        } else {
+          state.roots.forEach((root, i) => treeEl.appendChild(renderNode(root, 0, i)));
+        }
+
+        statusEl.textContent = state.selectedId
+          ? 'Target selected: next thought will attach to the highlighted bubble.'
+          : 'Root mode: next thought starts a new branch.';
+
+        syncCopyView();
+        persist();
+      }
+
+      function renderNode(node, depth, order) {
+        const li = document.createElement('li');
+        li.className = 'node';
+        li.style.setProperty('--depth', String(depth));
+
+        const bubble = document.createElement('button');
+        bubble.className = 'bubble';
+        bubble.type = 'button';
+        bubble.dataset.id = node.id;
+        bubble.textContent = `${depth === 0 ? '• ' : `${order + 1}. `}${node.text}`;
+        if (state.selectedId === node.id) bubble.classList.add('selected');
+
+        li.appendChild(bubble);
+
+        if (node.children?.length) {
+          const ul = document.createElement('ul');
+          node.children.forEach((child, idx) => ul.appendChild(renderNode(child, depth + 1, idx)));
+          li.appendChild(ul);
+        }
+
+        return li;
+      }
+
+      function makeExportText() {
+        const lines = [];
+        const topic = state.topic?.trim() || 'Untitled';
+        const updated = new Date(state.updatedAt || Date.now()).toLocaleString();
+
+        lines.push(`Session: ${topic}`);
+        lines.push(`Updated: ${updated}`);
+        lines.push('');
+        lines.push('Thoughts:');
+
+        if (state.roots.length === 0) lines.push('- ');
+
+        const walk = (nodes, depth) => {
+          nodes.forEach((node) => {
+            lines.push(`${'  '.repeat(depth)}- ${node.text.replace(/\n/g, '\n' + '  '.repeat(depth + 1))}`);
+            if (node.children?.length) walk(node.children, depth + 1);
+          });
+        };
+
+        walk(state.roots, 0);
+        return lines.join('\n');
+      }
+
+      function syncCopyView() {
+        copyViewEl.textContent = makeExportText();
+        copyViewEl.classList.toggle('show', state.copyView);
+      }
+
+      function fallbackCopy(text) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+      }
+
+      function autoGrow() {
+        inputEl.style.height = 'auto';
+        inputEl.style.height = Math.min(inputEl.scrollHeight, 128) + 'px';
+      }
+
+      function focusInput() {
+        inputEl.focus({ preventScroll: true });
+      }
+    })();
+  </script>
+</body>
+</html>
