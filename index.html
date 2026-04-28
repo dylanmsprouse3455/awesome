@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Jazzy's Books Dashboard</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar glass-card">
+      <div>
+        <h1>📚 Jazzy's Books</h1>
+        <p class="subtitle">Reading Intelligence Dashboard</p>
+      </div>
+      <div class="topbar-actions">
+        <button id="refreshMissingCoversBtn" class="button secondary">Refresh missing covers</button>
+        <button id="exportBtn" class="button secondary">Export JSON</button>
+        <label class="button secondary file-btn">Import JSON
+          <input type="file" id="importInput" accept="application/json" hidden>
+        </label>
+      </div>
+    </header>
+
+    <section id="dashboardCards" class="dashboard-grid"></section>
+
+    <section class="controls glass-card">
+      <input id="searchInput" type="search" placeholder="Search title, author, series..." />
+      <select id="statusFilter">
+        <option value="all">All statuses</option>
+        <option value="read">Read</option>
+        <option value="need-to-finish">Need to Finish</option>
+        <option value="dnf">DNF</option>
+      </select>
+      <select id="ratingFilter">
+        <option value="all">All ratings</option>
+        <option value="missing">Missing rating</option>
+        <option value="5">5★</option>
+        <option value="4">4★</option>
+        <option value="3">3★</option>
+        <option value="2">2★</option>
+        <option value="1">1★</option>
+      </select>
+      <label class="fav-filter"><input id="favoriteFilter" type="checkbox" /> Favorites only</label>
+    </section>
+
+    <nav class="view-tabs">
+      <button class="tab active" data-view="library">Library View</button>
+      <button class="tab" data-view="cards">Card View</button>
+      <button class="tab" data-view="series">Series View</button>
+      <button class="tab" data-view="cleanup">Cleanup View</button>
+      <button class="tab" data-view="taste">Taste Profile</button>
+    </nav>
+
+    <section id="cleanupControls" class="glass-card hidden"></section>
+    <section id="viewContainer"></section>
+
+    <section class="glass-card add-form-wrap">
+      <h2>Add Book</h2>
+      <form id="addBookForm" class="add-form">
+        <input required name="title" placeholder="Title" />
+        <input name="author" placeholder="Author" />
+        <input name="series" placeholder="Series" />
+        <input name="isbn" placeholder="ISBN" />
+        <select name="status">
+          <option value="need-to-finish">Need to Finish</option>
+          <option value="read">Read</option>
+          <option value="dnf">DNF</option>
+        </select>
+        <select name="rating">
+          <option value="">No rating</option>
+          <option value="1">1★</option>
+          <option value="2">2★</option>
+          <option value="3">3★</option>
+          <option value="4">4★</option>
+          <option value="5">5★</option>
+        </select>
+        <input name="comments" placeholder="Comments" />
+        <button class="button" type="submit">Add Book</button>
+      </form>
+    </section>
+  </div>
+  <template id="coverPlaceholderTemplate">
+    <div class="cover-placeholder">
+      <div class="cover-inner"></div>
+    </div>
+  </template>
+  <script src="assets/app.js" defer></script>
+</body>
+</html>
