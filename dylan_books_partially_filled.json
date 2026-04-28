@@ -1,0 +1,32 @@
+[
+  {
+    "id": "bk-1",
+    "title": "The Final Empire",
+    "author": "Brandon Sanderson",
+    "series": "Mistborn",
+    "status": "read",
+    "rating": 5,
+    "favorite": true,
+    "comments": "Loved the worldbuilding"
+  },
+  {
+    "id": "bk-2",
+    "title": "Words of Radiance",
+    "author": "Brandon Sanderson",
+    "series": "Stormlight Archive",
+    "status": "need-to-finish",
+    "rating": 4,
+    "favorite": false,
+    "comments": "Halfway through"
+  },
+  {
+    "id": "bk-3",
+    "title": "Pride and Prejudice",
+    "author": "Jane Austen",
+    "series": "",
+    "status": "dnf",
+    "rating": null,
+    "favorite": false,
+    "comments": "Will retry"
+  }
+]
